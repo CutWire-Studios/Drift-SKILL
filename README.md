@@ -10,6 +10,7 @@ cutwire-drift/
 │   ├── field-notes.md                    what a real build costs and where it leaks
 │   ├── production-pipeline.md            brief → design → source → VO → build → review
 │   ├── longform-build.md                 scripted rebuild: Lottie, window cards, lanes, VO
+│   ├── cartoon-build.md                  character cartoons: rigs, actions, staging, worlds, titles
 │   └── design-system-template.md         craft notes plus a worked design system that passed review
 └── scripts/
     ├── drift_cli.py                      HTTP client + `audit` for stray keys/transitions
@@ -17,6 +18,7 @@ cutwire-drift/
     ├── media_qc.py                       resolution/fps/bitrate gate + contact sheets
     ├── audio_master.py                   ebur128 measurement + loudnorm master
     ├── fetch_stock.py                    Mixkit/Pexels download with licence rows
+    ├── cartoon_lottie.py                 character rigs, prop, scene and cards as Lottie from code
     └── tts_fish.py                       Fish Audio VO that fits its slot
 ```
 

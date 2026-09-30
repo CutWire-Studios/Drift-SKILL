@@ -1,6 +1,6 @@
 ---
 name: cutwire-drift
-description: Build, edit, verify and export real videos in the CutWire Drift editor through its MCP tools (mcp__drift__*), and run a full promo, showcase, or long-form explainer from brief to graded export. Use this whenever the work touches Drift, the drift MCP, a timeline, clips, cuts, captions or subtitles, transcripts, cutting filler words or retakes from talking-head, interview, tutorial or podcast footage, picking the best take, speaker labels, voiceover or sound effects, transitions, keyframes or motion, speed ramps, Lottie or animated diagrams, screen-recording window cards, a programmatic rebuild of a timeline, 3D models, 3D tilts/perspective/depth on clips, depth-map effects (relight, depth of field, fog, text behind a subject), stickers, face or audio effects, beat-syncing, a showcase/promo/reel/trailer, or exporting a finished video — even when the user never names the skill or the editor. It carries the field-tested operating loop, the workarounds for ops that are currently broken, and bundled scripts (drift_cli.py, keyframes.py, media_qc.py, audio_master.py, fetch_stock.py, tts_fish.py) that replace work agents otherwise redo by hand every time.
+description: Build, edit, verify and export real videos in the CutWire Drift editor through its MCP tools (mcp__drift__*), and run a full promo, showcase, or long-form explainer from brief to graded export. Use this whenever the work touches Drift, the drift MCP, a timeline, clips, cuts, captions or subtitles, transcripts, cutting filler words or retakes from talking-head, interview, tutorial or podcast footage, picking the best take, speaker labels, voiceover or sound effects, transitions, keyframes or motion, speed ramps, Lottie or animated diagrams, cartoons or animated shorts with characters (kids' episodes, mascots, character rigs, lip-flap, props being lifted and carried), screen-recording window cards, a programmatic rebuild of a timeline, 3D models, 3D tilts/perspective/depth on clips, depth-map effects (relight, depth of field, fog, text behind a subject), stickers, face or audio effects, beat-syncing, a showcase/promo/reel/trailer, or exporting a finished video — even when the user never names the skill or the editor. It carries the field-tested operating loop, the workarounds for ops that are currently broken, and bundled scripts (drift_cli.py, keyframes.py, media_qc.py, audio_master.py, fetch_stock.py, tts_fish.py, cartoon_lottie.py) that replace work agents otherwise redo by hand every time.
 ---
 
 # CutWire Drift
@@ -24,6 +24,7 @@ chat. That method is `references/longform-build.md`.
 - `references/field-notes.md` — what went wrong in a real build and what it cost. Read before a long build.
 - `references/production-pipeline.md` — running a film from brief to export with sequential agents and written hand-offs. Read when the ask is "make a video", not "change this clip".
 - `references/longform-build.md` — a scripted rebuild for a long, graphic-heavy film: one timeline writer, offline Lottie, window cards, lane map, voiceover, and the deletes that emptied a timeline. Read it before building anything past a short montage.
+- `references/cartoon-build.md` — character cartoons with no footage: a Lottie rig generator, action sets, staging characters with a prop, ambient worlds, kids' titles, and the Lottie traps that cost a rebuild. Read it before building any cartoon or animated short.
 - `references/design-system-template.md` — craft notes (identity, type, copy, motion) and a worked design system (palette, type, motion tokens, banned effects) that survived review. Adapt or replace the example; do not ship its defaults unexamined.
 
 ## Preflight, every session
@@ -65,6 +66,25 @@ The failures that cost a full rebuild:
 - Build every lane in setup, before any clip. Inserting a lane later renumbers the map the script stored. For exact times, turn overlap on and check `placed` against `requested`.
 - Do not save after a bulk delete until `inspect` shows you removed only what you meant. If the timeline is already empty, `list_history` and `undo_to` still reach the earlier step — save does not clear undo — then audit and save.
 - Pre-render screen recordings to alpha cards with an explicit duration. A looping still used as an ffmpeg input encodes forever when duration is omitted.
+
+## Cartoons: characters are code
+
+A cartoon with characters and no footage is built from a generator. One Python file writes
+every character action, prop and scene as Lottie. The timeline places those files, and every
+fix is a rebuild. `scripts/cartoon_lottie.py` is a working kit from a 101 s preschool short:
+three rigged birds with idle, talk, walk, wave, point, smile, strain, hold, carry and put-down
+actions, a prop, an animated garden, a title card and an end card. Read
+`references/cartoon-build.md` first. The traps that cost the most:
+
+- Drift renders Lottie with Skottie, not rlottie. Gradients and bezier easing work, so a flat, still, six-colour "safe" style is a choice, not a limit.
+- A fill or stroke paints every earlier path in its group, child groups included. Give each shape its own group with its own paint.
+- Drift caches documents by path. After a rebuild, `set_lottie_source` every clip again.
+- A hold clip freezes on its last frame. Author hold actions 6–20 s long, with live motion to the end.
+- Give the character canvas room for its widest pose. Changing the canvas changes the contain-fit, so every box and every x keyframe has to be recomputed.
+- Stage interactions from rig coordinates: the prop within wing reach, and sound effects on hop landings. A prop set down between two characters vanishes behind them; set it down in front.
+
+For a children's film, the overshoot rule in *Taste* flips: squash, stretch and `back`
+easing are the genre. Still read every line aloud for double meanings.
 
 ## Editing speech: read it, don't watch it
 
@@ -342,4 +362,5 @@ All in `scripts/`, all standalone (`--help` on each), Python 3 + ffmpeg only.
 | `media_qc.py` | Resolution/fps/bitrate gate against the canvas, and contact sheets to look at. |
 | `audio_master.py` | ebur128 measurement, per-range levels, two-pass loudnorm master of the export. |
 | `fetch_stock.py` | Mixkit and Pexels search/download with a licence row per file. |
+| `cartoon_lottie.py` | Character rigs, prop, scene, title and end-card Lottie from code (`build --out --cast --seconds`), and `box` for where a rig lands in a clip box. |
 | `tts_fish.py` | Fish Audio voiceover that fits its slot: estimate first, then synthesise, trim, normalise, retry. Its `estimate` step is still the way to check a line fits before spending calls; for the synthesis itself prefer Drift's `tts_generate` (ElevenLabs or Fish, imported straight into the bin with its provenance) when the user has set a key in Settings → Cloud providers, and keep this script for older builds or when Drift has no key. |
